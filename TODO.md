@@ -11,3 +11,4 @@
 
 - [ ] Insert a penalty if the model gets the guess wrong.
 - [ ] Clean up np.where code and weird indexing. It makes it hard to read.
+- [ ] Identify why player and AI buttons need to be destroyed but not common ones.
