@@ -6,7 +6,6 @@
 - [ ] Add a lint that is applied before git commits.
 - [ ] Add a lot of comments and cleanup to update_card() so that it's clear what code is doing.
 - [ ] Bug with selecting 6s or 7s (in base game example), since a 6 might not be available for set of cards with no relationship.
-- [ ] TEST
 
 # Bucket
 
