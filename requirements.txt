@@ -2,3 +2,4 @@ numpy
 tk
 Pillow
 torch>=1.12.1
+PyAutoGUI
