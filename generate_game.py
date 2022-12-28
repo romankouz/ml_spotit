@@ -20,21 +20,18 @@ def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
                 if possible_card != -1:
                     if len(final_groups) > 0:
                         dropped_group = final_groups.pop()
-                        print(dropped_group)
                         # remove image group edges
                         for edge in it.permutations(dropped_group, 2):
                             image_adjacency[edge] = 0
                         # ban this assumed to be valid group so it doesn't show up again
-                        # print("IM HERE")
-                        banned_set[frozenset(dropped_group[:-1])] = banned_set.get(frozenset(dropped_group[:-1]), set())
-                        banned_set[frozenset(dropped_group[:-1])].add(dropped_group[-1])
+                        banned_set[str(final_groups + dropped_group[:-1])] = banned_set.get(str(final_groups + dropped_group[:-1]), set())
+                        banned_set[str(final_groups + dropped_group[:-1])].add(dropped_group[-1])
                         # print(banned_set)
-                        
                 # possible_card = (possible_card + 1) % num_cards
                 possible_card = np.where(image_adjacency == 0)[0][0]
             else:
                 #include intersectionality
-                possible_cards = list(sorted(set.intersection(*[set(list(filter(lambda x: x > max(image_group), np.where(image_adjacency[selected_card] == 0)[0]))) for selected_card in image_group]) - banned_set.get(frozenset(image_group), set())))
+                possible_cards = list(sorted(set.intersection(*[set(list(filter(lambda x: x > max(image_group), np.where(image_adjacency[selected_card] == 0)[0]))) for selected_card in image_group]) - banned_set.get(str(final_groups + image_group), set())))
                 # print(f"POSSIBLE CARDS: {possible_cards}")
                 # print(f"IMAGE GROUP: {image_group}")
                 # print(len(banned_set))
@@ -44,16 +41,15 @@ def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
                     for old_image in image_group:
                         image_adjacency[old_image, prev_image] = image_adjacency[prev_image, old_image] = 0
                     if len(image_group) > 0:
-                        banned_set[frozenset(image_group)] = banned_set.get(frozenset(image_group), set())
-                        banned_set[frozenset(image_group)].add(prev_image)
+                        banned_set[str(final_groups + image_group)] = banned_set.get(str(final_groups + image_group), set())
+                        banned_set[str(final_groups + image_group)].add(prev_image)
                     continue
                 else:
                     possible_card = possible_cards[0]
             for old_image in image_group:
                 image_adjacency[old_image, possible_card] = image_adjacency[possible_card, old_image] = 1
             image_group.append(possible_card)
-        print(len(banned_set))
-        # print(f"PERCENT COMPLETE: {round( 100 * np.mean(image_adjacency != 0), 2)}%")
+        print(f"PERCENT COMPLETE: {round( 100 * np.mean(image_adjacency != 0), 2)}%")
         final_groups.append(image_group)
     
     running_id = 1
@@ -126,7 +122,7 @@ def update_card(window, cards, you, game_images, label_dict, image_dict, image):
 def launch_game(window_width=1250, window_height=750):
 
     # generate the cards
-    cards = generate_cards(num_cards=21, num_symbols=31, images_per_card=5)
+    cards = generate_cards(num_cards=57, num_symbols=57, images_per_card=8)
 
     # get the images
     game_images = os.listdir("game_images")
