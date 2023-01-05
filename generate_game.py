@@ -4,70 +4,81 @@ import numpy as np
 import itertools as it
 from PIL import ImageTk, Image
 
+def valid_game(cards, row, col, images_per_card):
+    # print(cards)
+    # check that there are no repeats in the row
+    if len(set(cards[row]) - {0}) != (col + 1):
+        print("CARD WITH DUPLICATE")
+        print(cards[row])
+        return False
+    
+    for card in range(row):
+        # check that the intersection is at most 1
+        if col < (images_per_card - 1):
+            if len((set(cards[card]) - {0}).intersection(cards[row])) > 1:
+                print("MATHCHING CARDS:")
+                print(cards[card])
+                print(cards[row])
+                return False
+        else:
+        # if it's the last column check that the intersection is EXACTLY 1
+            if len((set(cards[card]) - {0}).intersection(cards[row])) != 1:
+                print("VIOLATING CARDS:")
+                print(cards[card])
+                print(cards[row])
+                return False
+
+    return True
+
+
+def create_cards(cards, num_symbols):
+    _ , images_per_card = cards.shape
+    zeros = np.where(cards == 0)
+    # print(f"{round(100 * np.mean(cards != 0), 2)}%")
+    if len(zeros[0]) > 0:
+        row_val, col_val = zeros[0][0], zeros[1][0]
+    else:
+        return cards
+    for value in range((images_per_card - 1) * col_val + 2, (images_per_card - 1) * col_val + 2 + (images_per_card - 1)):
+        cards[row_val, col_val] = value
+        if valid_game(cards, row_val, col_val, images_per_card):
+            if isinstance(create_cards(cards, num_symbols), np.ndarray):
+                return cards
+        print(f"BACKTRACK: {row_val}, {col_val}")
+        cards[row_val, col_val] = 0
+    return False
+
+
 def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
 
     if num_cards > num_symbols:
         raise ValueError("Not enough symbols for game of this size.")
-    #BACKTRACKING ALGORITHM
-    image_adjacency = np.eye(num_cards, dtype=int) * -1
-    final_groups = []
-    banned_set = {}
-    while len(final_groups) < num_cards:
-        image_group = []
-        possible_card = -1
-        while len(image_group) < images_per_card:
-            if len(image_group) == 0:
-                if possible_card != -1:
-                    if len(final_groups) > 0:
-                        dropped_group = final_groups.pop()
-                        # remove image group edges
-                        for edge in it.permutations(dropped_group, 2):
-                            image_adjacency[edge] = 0
-                        # ban this assumed to be valid group so it doesn't show up again
-                        banned_set[str(final_groups + dropped_group[:-1])] = banned_set.get(str(final_groups + dropped_group[:-1]), set())
-                        banned_set[str(final_groups + dropped_group[:-1])].add(dropped_group[-1])
-                        # print(banned_set)
-                # possible_card = (possible_card + 1) % num_cards
-                possible_card = np.where(image_adjacency == 0)[0][0]
-            else:
-                #include intersectionality
-                possible_cards = list(sorted(set.intersection(*[set(list(filter(lambda x: x > max(image_group), np.where(image_adjacency[selected_card] == 0)[0]))) for selected_card in image_group]) - banned_set.get(str(final_groups + image_group), set())))
-                # print(f"POSSIBLE CARDS: {possible_cards}")
-                # print(f"IMAGE GROUP: {image_group}")
-                # print(len(banned_set))
-                if len(possible_cards) == 0:
-                    prev_image = image_group.pop()
-                    # remove image from group in adjacency matrix
-                    for old_image in image_group:
-                        image_adjacency[old_image, prev_image] = image_adjacency[prev_image, old_image] = 0
-                    if len(image_group) > 0:
-                        banned_set[str(final_groups + image_group)] = banned_set.get(str(final_groups + image_group), set())
-                        banned_set[str(final_groups + image_group)].add(prev_image)
-                    continue
-                else:
-                    possible_card = possible_cards[0]
-            for old_image in image_group:
-                image_adjacency[old_image, possible_card] = image_adjacency[possible_card, old_image] = 1
-            image_group.append(possible_card)
-        print(f"PERCENT COMPLETE: {round( 100 * np.mean(image_adjacency != 0), 2)}%")
-        final_groups.append(image_group)
+    # BACKTRACKING ALGORITHM
+    cards = np.zeros((num_cards, images_per_card), dtype=int)
+    # set all the free variables (i.e. generate all the cards with image #1) 
+    cards[:, 0] = [1] + [x for x in range(1, images_per_card + 1) for _ in range(images_per_card-1)]
+    for i in range(images_per_card):
+        cards[i][1:] = np.arange(2, images_per_card + 1) + (images_per_card - 1) * i
+    cards[images_per_card:, 1] = np.tile(cards[1][1:], (images_per_card - 1))
+    # POSSIBLE O(1) SOLUTION
+    zeros = np.where(cards == 0)
+    for x, y in zip(zeros[0], zeros[1]):
+        possible_value = cards[x][y-1] + ((images_per_card - 1) + (cards[x][0] - 2))
+        # print(possible_value, )
+        if possible_value - cards[y][-1] > 0:
+            cards[x][y] = cards[y][possible_value - cards[y][-1]] - (images_per_card - 1) * (possible_value - cards[y][-1] > cards[y][-1])
+        else:
+            cards[x][y] = possible_value
+    # print(cards)
+    return create_cards(cards, num_symbols)
+
+
+    # for row in range(len(image_adjacency)):
+    #     for other_row in range(row + 1, len(image_adjacency)):
+    #         # 2 because of the match to itself and 1 other card
+    #         assert len(set(image_adjacency[row]).intersection(set(image_adjacency[other_row]))) == 2
     
-    running_id = 1
-    for group in final_groups:
-        for edge in it.permutations(group, 2):
-            image_adjacency[edge] = running_id
-        running_id += 1
-
-    print(image_adjacency)
-    for row in range(len(image_adjacency)):
-        for other_row in range(row + 1, len(image_adjacency)):
-            # 2 because of the match to itself and 1 other card
-            assert len(set(image_adjacency[row]).intersection(set(image_adjacency[other_row]))) == 2
-    print("This game is valid!")
-
-    # script should assign numbers to a particular image
-
-    return image_adjacency
+    # print("This game is valid!")
 
 def update_card(window, cards, you, game_images, label_dict, image_dict, image):
 
@@ -192,4 +203,19 @@ def launch_game(window_width=1250, window_height=750):
     window.mainloop()
 
 if __name__ == "__main__":
-    launch_game()
+    # launch_game()
+    import time
+    time_dict = {}
+    for i in range(3,11):
+        if i == 7:
+            continue
+        start = time.time()
+        layout = generate_cards(num_cards = i**2 - i + 1, num_symbols=i ** 2 - i + 1, images_per_card=i)
+        if not os.path.exists(f'layouts/{i}x{i}.txt') and valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i):
+            np.savetxt(f'layouts/{i}x{i}.txt', layout, fmt="%i")
+        end = time.time()
+        time_dict[i] = end - start
+        print(i, ": ", valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i))
+    layout = np.loadtxt('layouts/9x9.txt')
+    print(9, ": ", valid_game(layout, row=72, col=8, images_per_card=i))
+        # print(time_dict)
