@@ -23,9 +23,9 @@ def valid_game(cards, row, col, images_per_card):
         else:
         # if it's the last column check that the intersection is EXACTLY 1
             if len((set(cards[card]) - {0}).intersection(cards[row])) != 1:
-                print("VIOLATING CARDS:")
-                print(cards[card])
-                print(cards[row])
+                # print("VIOLATING CARDS:")
+                # print(cards[card])
+                # print(cards[row])
                 return False
 
     return True
@@ -60,7 +60,7 @@ def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
     for i in range(images_per_card):
         cards[i][1:] = np.arange(2, images_per_card + 1) + (images_per_card - 1) * i
     cards[images_per_card:, 1] = np.tile(cards[1][1:], (images_per_card - 1))
-    # POSSIBLE O(1) SOLUTION
+    # POSSIBLE O(N) SOLUTION
     zeros = np.where(cards == 0)
     for x, y in zip(zeros[0], zeros[1]):
         possible_value = cards[x][y-1] + ((images_per_card - 1) + (cards[x][0] - 2))
@@ -206,11 +206,12 @@ if __name__ == "__main__":
     # launch_game()
     import time
     time_dict = {}
-    for i in range(3,11):
+    for i in range(3,25):
         if i == 7:
             continue
         start = time.time()
         layout = generate_cards(num_cards = i**2 - i + 1, num_symbols=i ** 2 - i + 1, images_per_card=i)
+        # print(layout)
         if not os.path.exists(f'layouts/{i}x{i}.txt') and valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i):
             np.savetxt(f'layouts/{i}x{i}.txt', layout, fmt="%i")
         end = time.time()
@@ -218,4 +219,6 @@ if __name__ == "__main__":
         print(i, ": ", valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i))
     layout = np.loadtxt('layouts/9x9.txt')
     print(9, ": ", valid_game(layout, row=72, col=8, images_per_card=i))
+    layout = np.loadtxt('layouts/5x5.txt')
+    print(5, ": ", valid_game(layout, row=20, col=4, images_per_card=i))
         # print(time_dict)
