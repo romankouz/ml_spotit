@@ -6,7 +6,7 @@ A personal project that generates a Spot It environment for an AI to play agains
     3. Train an AI to play the game with a high degree of accuracy.
 
 ### January 1 - 10
-- [ ] Place images on super pixels and calculate size ranges so that images appear within card boundaries.
+- [x] Place images on super pixels and calculate size ranges so that images appear within card boundaries.
 - [ ] Add a lot of comments and cleanup to update_card() so that it's clear what code is doing.
 - [x] Write a backtracking algorithm to find the set of images that accurately creates a spot it game.
 

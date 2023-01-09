@@ -83,7 +83,6 @@ def update_card(window, cards, you, game_images, label_dict, image_dict, image):
     window_width = window.winfo_reqwidth()
 
     # set up superpixels
-    print(window_width)
     superpixels = {
         1: [(0.05 * window_width + 45, 0.4 * window_width), (0.1 * window_width + 22.5, 0.45 * window_width - 22.5), (0.1 * window_width + 22.5, 0.35 * window_width + 22.5), (0.15 * window_width, 0.5 * window_width - 45), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 45), (0.2 * window_width - 22.5, 0.45 * window_width - 22.5), (0.2 * window_width - 22.5, 0.35 * window_width + 22.5), (0.25 * window_width - 45, 0.4 * window_width)],
         2: [(0.75 * window_width + 45, 0.4 * window_width), (0.8 * window_width + 22.5, 0.45 * window_width - 22.5), (0.8 * window_width + 22.5, 0.35 * window_width + 22.5), (0.85 * window_width, 0.5 * window_width - 45), (0.85 * window_width, 0.4 * window_width), (0.85 * window_width, 0.3 * window_width + 45), (0.9 * window_width - 22.5, 0.45 * window_width - 22.5), (0.9 * window_width - 22.5, 0.35 * window_width + 22.5), (0.95 * window_width - 45, 0.4 * window_width)]
@@ -125,7 +124,7 @@ def update_card(window, cards, you, game_images, label_dict, image_dict, image):
         label_dict[i][k].destroy()
     for j, image in enumerate(images):
         raw_image = Image.open("game_images/" + game_images[image - 1])
-        transformed_image = raw_image.resize((np.random.randint(30, 80),)*2).rotate(np.random.uniform(0, 360))
+        transformed_image = raw_image.resize((np.random.randint(30, 75),)*2).rotate(np.random.uniform(0, 360))
         # create new button and move the old button to the center
         image_dict[i][j] = (ImageTk.PhotoImage(transformed_image), image)
         label_dict[i][j] = tk.Button(image=image_dict[i][j][0], bd=0, bg="white", command = lambda image=image: update_card(window, cards, bool(i-2), game_images, label_dict = label_dict, image_dict = image_dict, image = image))
@@ -137,10 +136,10 @@ def update_card(window, cards, you, game_images, label_dict, image_dict, image):
 
     return cards 
 
-def launch_game(window_width=1250):
+def launch_game(window_width=1250, num_cards=57, num_symbols=57, images_per_card=8):
 
     # generate the cards
-    cards = generate_cards(num_cards=57, num_symbols=57, images_per_card=8)
+    cards = generate_cards(num_cards=num_cards, num_symbols=num_symbols, images_per_card=images_per_card)
 
     # get the images
     game_images = os.listdir("game_images")
@@ -172,9 +171,8 @@ def launch_game(window_width=1250):
     c.create_window(0.85 * window_width, 0.5 * window_width + 30, window=tk.Label(text="AI", width=10, height=2))
 
     # set up superpixels
-    print(window_width)
     superpixels = {
-        0: [(0.05 * window_width + 90, 0.4 * window_width), (0.1 * window_width + 45, 0.45 * window_width - 45), (0.1 * window_width + 45, 0.35 * window_width + 45), (0.15 * window_width, 0.5 * window_width - 90), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 90), (0.2 * window_width - 45, 0.45 * window_width - 45), (0.2 * window_width - 45, 0.35 * window_width + 45), (0.25 * window_width - 90, 0.4 * window_width)],
+        0: [(0.4 * window_width + 45, (10 + 0.1 * window_width)), (0.45 * window_width + 22.5, (10 + 0.05 * window_width) + 22.5), (0.45 * window_width + 22.5, (10 + 0.15 * window_width) - 22.5), (0.5 * window_width, (10) + 45), (0.5 * window_width, (10 + 0.1 * window_width)), (0.5 * window_width, (10 + 0.2 * window_width) - 45), (0.55 * window_width - 22.5, (10 + 0.05 * window_width) + 22.5), (0.55 * window_width - 22.5, (10 + 0.15 * window_width) - 22.5), (0.6 * window_width - 45, (10 + 0.1 * window_width))],
         1: [(0.05 * window_width + 45, 0.4 * window_width), (0.1 * window_width + 22.5, 0.45 * window_width - 22.5), (0.1 * window_width + 22.5, 0.35 * window_width + 22.5), (0.15 * window_width, 0.5 * window_width - 45), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 45), (0.2 * window_width - 22.5, 0.45 * window_width - 22.5), (0.2 * window_width - 22.5, 0.35 * window_width + 22.5), (0.25 * window_width - 45, 0.4 * window_width)],
         2: [(0.75 * window_width + 45, 0.4 * window_width), (0.8 * window_width + 22.5, 0.45 * window_width - 22.5), (0.8 * window_width + 22.5, 0.35 * window_width + 22.5), (0.85 * window_width, 0.5 * window_width - 45), (0.85 * window_width, 0.4 * window_width), (0.85 * window_width, 0.3 * window_width + 45), (0.9 * window_width - 22.5, 0.45 * window_width - 22.5), (0.9 * window_width - 22.5, 0.35 * window_width + 22.5), (0.95 * window_width - 45, 0.4 * window_width)]
     }
@@ -201,7 +199,7 @@ def launch_game(window_width=1250):
         label_dict[i] = {}
         for j, image in enumerate(images):
             raw_image = Image.open("game_images/" + game_images[image - 1])
-            transformed_image = raw_image.resize((np.random.randint(30, 80),)*2).rotate(np.random.uniform(0, 360))
+            transformed_image = raw_image.resize((np.random.randint(30, 75),)*2).rotate(np.random.uniform(0, 360))
             # dictionary assignment doesn't overwrite buttons and they all get saved
             image_dict[i][j] = (ImageTk.PhotoImage(transformed_image), image)
             random_index = np.random.choice(len(superpixels[i]), size=1, replace=False)[0]
@@ -218,7 +216,7 @@ def launch_game(window_width=1250):
     window.mainloop()
 
 if __name__ == "__main__":
-    launch_game()
+    launch_game(num_cards=13, num_symbols=57, images_per_card=4)
     # import time
     # time_dict = {}
     # for i in range(3,25):
