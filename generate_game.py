@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+import random
 import numpy as np
 import itertools as it
 from PIL import ImageTk, Image
@@ -23,9 +24,9 @@ def valid_game(cards, row, col, images_per_card):
         else:
         # if it's the last column check that the intersection is EXACTLY 1
             if len((set(cards[card]) - {0}).intersection(cards[row])) != 1:
-                # print("VIOLATING CARDS:")
-                # print(cards[card])
-                # print(cards[row])
+                print("VIOLATING CARDS:")
+                print(cards[card])
+                print(cards[row])
                 return False
 
     return True
@@ -51,6 +52,10 @@ def create_cards(cards, num_symbols):
 
 def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
 
+    if f"{images_per_card}x{images_per_card}.txt" in os.listdir('layouts'):
+        full_deck = np.loadtxt(f"layouts/{images_per_card}x{images_per_card}.txt", dtype='int')
+        return full_deck[:num_cards]
+
     if num_cards > num_symbols:
         raise ValueError("Not enough symbols for game of this size.")
     # BACKTRACKING ALGORITHM
@@ -72,18 +77,17 @@ def generate_cards(num_cards=57, num_symbols=57, images_per_card=8):
     # print(cards)
     return create_cards(cards, num_symbols)
 
-
-    # for row in range(len(image_adjacency)):
-    #     for other_row in range(row + 1, len(image_adjacency)):
-    #         # 2 because of the match to itself and 1 other card
-    #         assert len(set(image_adjacency[row]).intersection(set(image_adjacency[other_row]))) == 2
-    
-    # print("This game is valid!")
-
 def update_card(window, cards, you, game_images, label_dict, image_dict, image):
 
     # get window width
     window_width = window.winfo_reqwidth()
+
+    # set up superpixels
+    print(window_width)
+    superpixels = {
+        1: [(0.05 * window_width + 45, 0.4 * window_width), (0.1 * window_width + 22.5, 0.45 * window_width - 22.5), (0.1 * window_width + 22.5, 0.35 * window_width + 22.5), (0.15 * window_width, 0.5 * window_width - 45), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 45), (0.2 * window_width - 22.5, 0.45 * window_width - 22.5), (0.2 * window_width - 22.5, 0.35 * window_width + 22.5), (0.25 * window_width - 45, 0.4 * window_width)],
+        2: [(0.75 * window_width + 45, 0.4 * window_width), (0.8 * window_width + 22.5, 0.45 * window_width - 22.5), (0.8 * window_width + 22.5, 0.35 * window_width + 22.5), (0.85 * window_width, 0.5 * window_width - 45), (0.85 * window_width, 0.4 * window_width), (0.85 * window_width, 0.3 * window_width + 45), (0.9 * window_width - 22.5, 0.45 * window_width - 22.5), (0.9 * window_width - 22.5, 0.35 * window_width + 22.5), (0.95 * window_width - 45, 0.4 * window_width)]
+    }
 
     # check if the game is over
     if len(cards) == 0:
@@ -121,16 +125,19 @@ def update_card(window, cards, you, game_images, label_dict, image_dict, image):
         label_dict[i][k].destroy()
     for j, image in enumerate(images):
         raw_image = Image.open("game_images/" + game_images[image - 1])
-        transformed_image = raw_image.resize((np.random.randint(30, 90),)*2).rotate(np.random.uniform(0, 360))
+        transformed_image = raw_image.resize((np.random.randint(30, 80),)*2).rotate(np.random.uniform(0, 360))
         # create new button and move the old button to the center
         image_dict[i][j] = (ImageTk.PhotoImage(transformed_image), image)
         label_dict[i][j] = tk.Button(image=image_dict[i][j][0], bd=0, bg="white", command = lambda image=image: update_card(window, cards, bool(i-2), game_images, label_dict = label_dict, image_dict = image_dict, image = image))
-        offset_x_low, offset_x_high = (-0.4, -0.3) if i == 1 else (0.3, 0.4)
-        label_dict[i][j].place(x=np.random.uniform((0.5 + offset_x_low) * window_width,  (0.5 + offset_x_high) * window_width), y=np.random.uniform(0.35 * window_width, 0.45 * window_width))
+        # select a random superpixel upon which to place the new image
+        random_index = np.random.choice(len(superpixels[i]), size=1, replace=False)[0]
+        x, y = superpixels[i][random_index]
+        superpixels[i].pop(random_index)
+        label_dict[i][j].place(x=x , y=y, anchor="center")
 
     return cards 
 
-def launch_game(window_width=1250, window_height=750):
+def launch_game(window_width=1250):
 
     # generate the cards
     cards = generate_cards(num_cards=57, num_symbols=57, images_per_card=8)
@@ -153,7 +160,6 @@ def launch_game(window_width=1250, window_height=750):
     c.pack()
 
     # Draw an Oval in the canvas
-    
     c.create_oval(0.4 * window_width, 10 , 0.6 * window_width, 10 + 0.2 * window_width)
 
     # Your card
@@ -164,6 +170,14 @@ def launch_game(window_width=1250, window_height=750):
     # create user labels
     c.create_window(0.15 * window_width, 0.5 * window_width + 30, window=tk.Label(text="You", width=10, height=2))
     c.create_window(0.85 * window_width, 0.5 * window_width + 30, window=tk.Label(text="AI", width=10, height=2))
+
+    # set up superpixels
+    print(window_width)
+    superpixels = {
+        0: [(0.05 * window_width + 90, 0.4 * window_width), (0.1 * window_width + 45, 0.45 * window_width - 45), (0.1 * window_width + 45, 0.35 * window_width + 45), (0.15 * window_width, 0.5 * window_width - 90), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 90), (0.2 * window_width - 45, 0.45 * window_width - 45), (0.2 * window_width - 45, 0.35 * window_width + 45), (0.25 * window_width - 90, 0.4 * window_width)],
+        1: [(0.05 * window_width + 45, 0.4 * window_width), (0.1 * window_width + 22.5, 0.45 * window_width - 22.5), (0.1 * window_width + 22.5, 0.35 * window_width + 22.5), (0.15 * window_width, 0.5 * window_width - 45), (0.15 * window_width, 0.4 * window_width), (0.15 * window_width, 0.3 * window_width + 45), (0.2 * window_width - 22.5, 0.45 * window_width - 22.5), (0.2 * window_width - 22.5, 0.35 * window_width + 22.5), (0.25 * window_width - 45, 0.4 * window_width)],
+        2: [(0.75 * window_width + 45, 0.4 * window_width), (0.8 * window_width + 22.5, 0.45 * window_width - 22.5), (0.8 * window_width + 22.5, 0.35 * window_width + 22.5), (0.85 * window_width, 0.5 * window_width - 45), (0.85 * window_width, 0.4 * window_width), (0.85 * window_width, 0.3 * window_width + 45), (0.9 * window_width - 22.5, 0.45 * window_width - 22.5), (0.9 * window_width - 22.5, 0.35 * window_width + 22.5), (0.95 * window_width - 45, 0.4 * window_width)]
+    }
 
     # WORKFLOW
 
@@ -187,38 +201,39 @@ def launch_game(window_width=1250, window_height=750):
         label_dict[i] = {}
         for j, image in enumerate(images):
             raw_image = Image.open("game_images/" + game_images[image - 1])
-            transformed_image = raw_image.resize((np.random.randint(30, 90),)*2).rotate(np.random.uniform(0, 360))
+            transformed_image = raw_image.resize((np.random.randint(30, 80),)*2).rotate(np.random.uniform(0, 360))
             # dictionary assignment doesn't overwrite buttons and they all get saved
             image_dict[i][j] = (ImageTk.PhotoImage(transformed_image), image)
+            random_index = np.random.choice(len(superpixels[i]), size=1, replace=False)[0]
+            x, y = superpixels[i][random_index]
+            superpixels[i].pop(random_index)
             if i == 0:
                 label_dict[i][j] = tk.Button(image=image_dict[i][j][0], bd=0, bg="white", relief='sunken', command=tk.DISABLED)
-                label_dict[i][j].place(x=np.random.uniform(0.45 * window_width,  0.55 * window_width), y=np.random.uniform(10 + 0.05 * window_width, 10 + 0.15 * window_width))
             if i == 1:
                 label_dict[i][j] = tk.Button(image=image_dict[i][j][0], bd=0, bg="white", command = lambda image=image: update_card(window, cards_you, True, game_images, label_dict = label_dict, image_dict = image_dict, image = image))
-                label_dict[i][j].place(x=np.random.uniform(0.1 * window_width,  0.2 * window_width), y=np.random.uniform(0.35 * window_width, 0.45 * window_width))
             if i == 2:
                 label_dict[i][j] = tk.Button(image=image_dict[i][j][0], bd=0, bg="white", command = lambda image=image: update_card(window, cards_AI, False, game_images, label_dict = label_dict, image_dict = image_dict, image = image))
-                label_dict[i][j].place(x=np.random.uniform(0.8 * window_width,  0.9 * window_width), y=np.random.uniform(0.35 * window_width, 0.45 * window_width))
+            label_dict[i][j].place(x=x , y=y, anchor="center")
     
     window.mainloop()
 
 if __name__ == "__main__":
-    # launch_game()
-    import time
-    time_dict = {}
-    for i in range(3,25):
-        if i == 7:
-            continue
-        start = time.time()
-        layout = generate_cards(num_cards = i**2 - i + 1, num_symbols=i ** 2 - i + 1, images_per_card=i)
-        # print(layout)
-        if not os.path.exists(f'layouts/{i}x{i}.txt') and valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i):
-            np.savetxt(f'layouts/{i}x{i}.txt', layout, fmt="%i")
-        end = time.time()
-        time_dict[i] = end - start
-        print(i, ": ", valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i))
-    layout = np.loadtxt('layouts/9x9.txt')
-    print(9, ": ", valid_game(layout, row=72, col=8, images_per_card=i))
-    layout = np.loadtxt('layouts/5x5.txt')
-    print(5, ": ", valid_game(layout, row=20, col=4, images_per_card=i))
-        # print(time_dict)
+    launch_game()
+    # import time
+    # time_dict = {}
+    # for i in range(3,25):
+    #     if i == 7:
+    #         continue
+    #     start = time.time()
+    #     layout = generate_cards(num_cards = i**2 - i + 1, num_symbols=i ** 2 - i + 1, images_per_card=i)
+    #     # print(layout)
+    #     if not os.path.exists(f'layouts/{i}x{i}.txt') and valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i):
+    #         np.savetxt(f'layouts/{i}x{i}.txt', layout, fmt="%i")
+    #     end = time.time()
+    #     time_dict[i] = end - start
+    #     print(i, ": ", valid_game(layout, row=i**2 - i, col=i-1, images_per_card=i))
+    # layout = np.loadtxt('layouts/9x9.txt')
+    # print(9, ": ", valid_game(layout, row=72, col=8, images_per_card=i))
+    # layout = np.loadtxt('layouts/5x5.txt')
+    # print(5, ": ", valid_game(layout, row=20, col=4, images_per_card=i))
+    # print(time_dict)

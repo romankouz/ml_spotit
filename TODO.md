@@ -22,4 +22,4 @@ A personal project that generates a Spot It environment for an AI to play agains
 - [ ] Identify why player and AI buttons need to be destroyed but not common ones.
 - [ ] Add docstrings for methods and classes.
 - [ ] A lot of repeat arithmetic calculations should be saved in properly named variables.
-- [ ] Identify why my algorithm works when k-1 is prime and try to see a pattern for when k-1 isn't prime.
+- [ ] Identify why my algorithm works when k-1 is prime and try to see a pattern for when k-1 isn't prime. (SEE IF YOU CAN BOIL ALL OF THEM DOWN TO A PRIME PROBLEM)
